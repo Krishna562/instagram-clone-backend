@@ -45,3 +45,31 @@ export const likePost = async (req, res, next) => {
     next(err);
   }
 };
+
+export const addComment = async (req, res, next) => {
+  const { userId, comment, postId } = req.body;
+  try {
+    const post = await postModel.findById(postId);
+    const newCommentObj = { userId, comment };
+    post.comments.push(newCommentObj);
+    await post.save();
+    res.json({ updatedPost: post });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteComment = async (req, res, next) => {
+  const { comment, postId } = req.body;
+  try {
+    const post = await postModel.findById(postId);
+    const updatedCommentsArr = post.comments.filter(
+      (comm) => comm.comment !== comment
+    );
+    post.comments = updatedCommentsArr;
+    await post.save();
+    res.json({ updatedPost: post });
+  } catch (err) {
+    next(err);
+  }
+};
