@@ -12,6 +12,7 @@ export const getAllUsers = async (req, res, next) => {
 
 export const getSpecificUser = async (req, res, next) => {
   const { username } = req.params;
+
   try {
     const specificUser = await userModel
       .findOne({ username: username })
@@ -22,6 +23,24 @@ export const getSpecificUser = async (req, res, next) => {
       throw err;
     } else {
       res.json({ specificUser: specificUser, userPosts: specificUser.posts });
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const getSpecificUserById = async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const specificUser = await userModel.findById(userId).populate("posts");
+    if (!specificUser) {
+      const err = new Error("This user doesn't exist");
+      err.statusCode = 404;
+      throw err;
+    } else {
+      res.json({ specificUser: specificUser });
     }
   } catch (err) {
     console.log(err);

@@ -60,11 +60,11 @@ export const addComment = async (req, res, next) => {
 };
 
 export const deleteComment = async (req, res, next) => {
-  const { comment, postId } = req.body;
+  const { commentId, postId } = req.body;
   try {
     const post = await postModel.findById(postId);
     const updatedCommentsArr = post.comments.filter(
-      (comm) => comm.comment !== comment
+      (comm) => !comm._id.equals(commentId)
     );
     post.comments = updatedCommentsArr;
     await post.save();
