@@ -20,6 +20,7 @@ const userSchema = new Schema({
   posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
   profilePic: String,
   story: Array,
+  searchHistory: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
 const userModel = new model("User", userSchema);
