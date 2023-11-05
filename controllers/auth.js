@@ -54,7 +54,7 @@ export const loginUser = async (req, res, next) => {
       if (isValidUser) {
         const token = jsonwebtoken.sign(
           { userId: user._id },
-          "instagramCloneButBetter",
+          process.env.JWT_TOKEN_SECRET,
           {
             expiresIn: "10d",
           }
@@ -79,6 +79,11 @@ export const loginUser = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+export const logout = (req, res, next) => {
+  res.clearCookie("jwt");
+  res.json({ message: "cookie removed" });
 };
 
 export const resetPasswordRequest = (req, res, next) => {

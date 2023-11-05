@@ -5,13 +5,14 @@ import {
   loginUser,
   resetPasswordRequest,
   signupUser,
+  logout,
 } from "../controllers/auth.js";
 
 const authRouter = Router();
 
 authRouter.put(
   "/signup",
-  body("email", "Invalid Email").isEmail().notEmpty(),
+  body("email", "Invalid Email").isEmail().notEmpty().normalizeEmail(),
   body("password", "Invalid password")
     .isLength({ min: 4 })
     .withMessage("Password must be atleast 4 characters long")
@@ -25,7 +26,9 @@ authRouter.put(
   }),
   signupUser
 );
-authRouter.put("/login", loginUser);
+authRouter.put("/login", body("email").normalizeEmail(), loginUser);
+
+authRouter.delete("/logout", logout);
 authRouter.post("/resetPasswordRequest", resetPasswordRequest);
 
 export default authRouter;

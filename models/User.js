@@ -13,16 +13,8 @@ const userSchema = new Schema({
     require: true,
     type: String,
   },
-  followers: [
-    {
-      userId: { type: Schema.Types.ObjectId, ref: "User" },
-    },
-  ],
-  following: [
-    {
-      userId: { type: Schema.Types.ObjectId, ref: "User" },
-    },
-  ],
+  followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  following: [{ type: Schema.Types.ObjectId, ref: "User" }],
   passwordResetToken: String,
   passwordExpiration: Date,
   posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
