@@ -112,7 +112,9 @@ export const updateUser = async (req, res, next) => {
       }
     }
     if (imgPath) {
-      deleteFile(currentUser.profilePic);
+      if (currentUser.profilePic) {
+        deleteFile(currentUser.profilePic);
+      }
       currentUser.profilePic = imgPath;
     }
     currentUser.username = username;
