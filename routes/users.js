@@ -7,6 +7,7 @@ import {
   followUser,
   getTaggedPosts,
   getPeople,
+  updateUserSearchHistory,
 } from "../controllers/users.js";
 import isValidUser from "../utils/isValidUser.js";
 
@@ -25,5 +26,7 @@ usersRouter.patch("/follow-user", isValidUser, followUser);
 usersRouter.get("/tagged-posts/:username", isValidUser, getTaggedPosts);
 
 usersRouter.get("/get-people/:userId", isValidUser, getPeople);
+
+usersRouter.put("/update-history", isValidUser, updateUserSearchHistory);
 
 export default usersRouter;

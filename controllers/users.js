@@ -172,3 +172,37 @@ export const getPeople = async (req, res, next) => {
     next(err);
   }
 };
+
+export const updateUserSearchHistory = async (req, res, next) => {
+  const { userId, actionType } = req.body;
+  const currentUser = await userModel.findById(req.userId);
+  try {
+    if (actionType === "remove") {
+      await userModel.findByIdAndUpdate(req.userId, {
+        $pull: { searchHistory: userId },
+      });
+    } else if (actionType === "removeAll") {
+      currentUser.searchHistory = [];
+      await currentUser.save();
+    } else {
+      const hasAlreadySearched = currentUser.searchHistory.find(
+        (searchedUserId) => searchedUserId.equals(userId)
+      );
+      if (hasAlreadySearched) {
+        await userModel.findByIdAndUpdate(req.userId, {
+          $pull: { searchHistory: userId },
+        });
+      }
+      const updatedUser = await userModel.findById(req.userId);
+      updatedUser.searchHistory.push(userId);
+      await updatedUser.save();
+    }
+    const updatedCurrentUser = await userModel
+      .findById(req.userId)
+      .populate("searchHistory");
+    res.json({ updatedHistory: updatedCurrentUser.searchHistory });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
