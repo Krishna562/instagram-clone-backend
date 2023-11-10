@@ -3,9 +3,10 @@ import { body } from "express-validator";
 
 import {
   loginUser,
-  resetPasswordRequest,
+  sendResetPasswordEmail,
   signupUser,
   logout,
+  resetPassword,
 } from "../controllers/auth.js";
 
 const authRouter = Router();
@@ -29,6 +30,8 @@ authRouter.put(
 authRouter.put("/login", body("email").normalizeEmail(), loginUser);
 
 authRouter.delete("/logout", logout);
-authRouter.post("/resetPasswordRequest", resetPasswordRequest);
+
+authRouter.put("/reset-password", resetPassword);
+authRouter.put("/resetPass-request", sendResetPasswordEmail);
 
 export default authRouter;
