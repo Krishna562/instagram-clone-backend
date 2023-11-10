@@ -6,7 +6,7 @@ export const createPost = async (req, res, next) => {
   const imgFile = req.file;
   const { caption, tags } = req.body;
   const parsedTags = JSON.parse(tags);
-  const imgUrl = `${process.env.API_URL}/${imgFile.path}`;
+  const imgUrl = `${process.env.API_URL}${imgFile.path}`;
   try {
     const newPost = new postModel({
       creatorId: req.userId,
