@@ -127,14 +127,17 @@ export const sendResetPasswordEmail = (req, res, next) => {
         next(err);
       }
 
+      const frontendUrl =
+        process.env.NODE_ENV === "production"
+          ? process.env.ONRENDER_FRONTEND_URL
+          : process.env.FRONTEND_URL;
+
       // SENDING THE EMAIL
       const emailOptions = {
         from: "robin2007562@outlook.com",
         to: email,
         subject: "password reset request",
-        html: `<h1>Password reset request</h1><p>You requested for a password reset. Click the <a href='${
-          process.env.ONRENDER_FRONTEND_URL || process.env.FRONTEND_URL
-        }/reset-password/${token}'>link</a> to change your password.`,
+        html: `<h1>Password reset request</h1><p>You requested for a password reset. Click the <a href='${frontendUrl}/reset-password/${token}'>link</a> to change your password.`,
       };
 
       transporter.sendMail(emailOptions, (err, data) => {

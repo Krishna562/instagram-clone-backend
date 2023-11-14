@@ -98,8 +98,12 @@ export const updateUser = async (req, res, next) => {
   const { username } = req.body;
   const imgFile = req.file;
   let imgPath;
+  const apiUrl =
+    process.env.NODE_ENV === "production"
+      ? process.env.ONRENDER_API_URL
+      : process.env.API_URL;
   if (imgFile) {
-    imgPath = `${process.env.API_URL}${imgFile.path}`;
+    imgPath = `${apiUrl}${imgFile.path}`;
   }
   try {
     const currentUser = await userModel
