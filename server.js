@@ -22,7 +22,7 @@ app.use(
       "https://instagram-clone-frontend-kx2l.onrender.com",
     ],
     credentials: true,
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorizations"],
   })
 );
 
