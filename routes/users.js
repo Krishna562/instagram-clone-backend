@@ -8,6 +8,8 @@ import {
   getTaggedPosts,
   getPeople,
   updateUserSearchHistory,
+  toggleAccountVisibility,
+  handleFollowRequest,
 } from "../controllers/users.js";
 import isValidUser from "../utils/isValidUser.js";
 
@@ -28,5 +30,9 @@ usersRouter.get("/tagged-posts/:username", isValidUser, getTaggedPosts);
 usersRouter.get("/get-people/:userId", isValidUser, getPeople);
 
 usersRouter.put("/update-history", isValidUser, updateUserSearchHistory);
+
+usersRouter.put("/toggle-account-visibility", toggleAccountVisibility);
+
+usersRouter.put("/follow-request", isValidUser, handleFollowRequest);
 
 export default usersRouter;

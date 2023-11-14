@@ -6,7 +6,7 @@ export const createPost = async (req, res, next) => {
   const imgFile = req.file;
   const { caption, tags } = req.body;
   const parsedTags = JSON.parse(tags);
-  const imgUrl = `${process.env.API_URL}${imgFile.path}`;
+  const imgUrl = `${process.env.API_URL}/${imgFile.path}`;
   try {
     const newPost = new postModel({
       creatorId: req.userId,
@@ -80,7 +80,9 @@ export const deleteComment = async (req, res, next) => {
 };
 
 export const getAllPosts = async (req, res, next) => {
+  const currentUserId = req.userId;
   try {
+    const currentUser = await userModel.findById(currentUserId);
     const allPosts = await postModel.aggregate([
       { $sort: { createdAt: -1 } },
       {
@@ -99,7 +101,19 @@ export const getAllPosts = async (req, res, next) => {
       return post;
     });
 
-    res.json({ allPosts: filteredPosts });
+    const finalPostsArr = filteredPosts.filter((post) => {
+      if (
+        !post.creatorId.isPrivate ||
+        post.creatorId.followers.find((follower) =>
+          follower.equals(currentUser._id)
+        ) ||
+        post.creatorId._id.equals(currentUserId)
+      ) {
+        return post;
+      }
+    });
+
+    res.json({ allPosts: finalPostsArr });
   } catch (err) {
     next(err);
   }

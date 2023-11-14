@@ -8,7 +8,8 @@ loggedInRouter.get("/loggedIn", isValidUser, async (req, res) => {
   const user = await userModel
     .findById(req.userId)
     .populate("posts")
-    .populate("searchHistory");
+    .populate("searchHistory")
+    .populate("followRequestsRecieved");
   res.status(200).json({ isLoggedIn: true, user: user });
 });
 

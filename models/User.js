@@ -19,8 +19,10 @@ const userSchema = new Schema({
   passwordExpiration: Date,
   posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
   profilePic: String,
-  story: Array,
   searchHistory: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  isPrivate: { require: true, type: Boolean, default: true },
+  followRequestsRecieved: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  followRequestsSent: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
 const userModel = new model("User", userSchema);

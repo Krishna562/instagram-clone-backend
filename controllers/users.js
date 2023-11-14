@@ -102,7 +102,9 @@ export const updateUser = async (req, res, next) => {
     imgPath = `${process.env.API_URL}${imgFile.path}`;
   }
   try {
-    const currentUser = await userModel.findById(req.userId);
+    const currentUser = await userModel
+      .findById(req.userId)
+      .populate("searchHistory");
     if (currentUser.username !== username) {
       const existingUser = await userModel.findOne({ username: username });
       if (existingUser) {
@@ -130,13 +132,16 @@ export const followUser = async (req, res, next) => {
   const { currentUserId, userToFollowId } = req.body;
   try {
     const userToFollow = await userModel.findById(userToFollowId);
-    const currentUser = await userModel.findById(currentUserId);
+    const currentUser = await userModel
+      .findById(currentUserId)
+      .populate("searchHistory");
 
     if (
       userToFollow.followers.find((followerId) =>
         followerId.equals(currentUserId)
       )
     ) {
+      // UNFOLLOW
       const updatedFollowersArr = userToFollow.followers.filter(
         (followerId) => !followerId.equals(currentUserId)
       );
@@ -145,7 +150,33 @@ export const followUser = async (req, res, next) => {
         (followingId) => !followingId.equals(userToFollowId)
       );
       currentUser.following = updatedFollowingArr;
+    } else if (
+      userToFollow.isPrivate &&
+      !userToFollow.followRequestsRecieved.find((requestRecieved) =>
+        requestRecieved.equals(currentUserId)
+      )
+    ) {
+      // REQUEST TO FOLLOW
+      userToFollow.followRequestsRecieved.push(currentUserId);
+      currentUser.followRequestsSent.push(userToFollowId);
+    } else if (
+      userToFollow.followRequestsRecieved.find((requestRecieved) =>
+        requestRecieved.equals(currentUserId)
+      )
+    ) {
+      // CANCEL THE REQUEST TO FOLLOW
+      const updatedRequestsRecievedArr =
+        userToFollow.followRequestsRecieved.filter(
+          (requestRecieved) => !requestRecieved.equals(currentUserId)
+        );
+      userToFollow.followRequestsRecieved = updatedRequestsRecievedArr;
+
+      const updatedRequestsSentArr = currentUser.followRequestsSent.filter(
+        (requestSent) => !requestSent.equals(userToFollowId)
+      );
+      currentUser.followRequestsSent = updatedRequestsSentArr;
     } else {
+      // FOLLOW ( AS THE USER TO FOLLOW HAS A PUBLIC ACCOUNT )
       userToFollow.followers.push(currentUserId);
       currentUser.following.push(userToFollowId);
     }
@@ -153,6 +184,42 @@ export const followUser = async (req, res, next) => {
     await currentUser.save();
 
     res.json({ updatedUser: currentUser });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const handleFollowRequest = async (req, res, next) => {
+  const { currentUserId, followRequesterId, actionType } = req.body;
+  try {
+    const currentUser = await userModel
+      .findById(currentUserId)
+      .populate("searchHistory");
+    const followRequester = await userModel.findById(followRequesterId);
+
+    // UPDATE THE REQUESTER
+    const updatedRequestsSentArr = followRequester.followRequestsSent.filter(
+      (reqestSent) => !reqestSent.equals(currentUserId)
+    );
+    followRequester.followRequestsSent = updatedRequestsSentArr;
+
+    // UPDATE THE CURRENT USER
+    const updatedRequestsRecievedArr =
+      currentUser.followRequestsRecieved.filter(
+        (requestRecieved) => !requestRecieved.equals(followRequesterId)
+      );
+    currentUser.followRequestsRecieved = updatedRequestsRecievedArr;
+
+    if (actionType === "accept") {
+      currentUser.followers.push(followRequesterId);
+      followRequester.following.push(currentUserId);
+    }
+
+    await currentUser.save();
+    await followRequester.save();
+
+    res.json({ updatedCurrentUser: currentUser });
   } catch (err) {
     console.log(err);
     next(err);
@@ -201,6 +268,36 @@ export const updateUserSearchHistory = async (req, res, next) => {
       .findById(req.userId)
       .populate("searchHistory");
     res.json({ updatedHistory: updatedCurrentUser.searchHistory });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const toggleAccountVisibility = async (req, res, next) => {
+  const { _id, followRequestsRecieved } = req.body.currentUser;
+  try {
+    const currentUser = await userModel.findById(_id).populate("searchHistory");
+
+    if (currentUser.isPrivate) {
+      await userModel.updateMany(
+        { followRequestsSent: currentUser._id },
+        {
+          $push: { following: currentUser._id },
+          $pull: { followRequestsSent: currentUser._id },
+        }
+      );
+      currentUser.followers = [
+        ...currentUser.followers,
+        ...followRequestsRecieved,
+      ];
+      currentUser.followRequestsRecieved = [];
+      currentUser.isPrivate = false;
+    } else {
+      currentUser.isPrivate = true;
+    }
+    await currentUser.save();
+    res.json({ updatedUser: currentUser });
   } catch (err) {
     console.log(err);
     next(err);

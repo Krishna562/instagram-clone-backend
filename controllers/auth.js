@@ -60,7 +60,9 @@ export const signupUser = async (req, res, next) => {
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const user = await userModel.findOne({ email: email });
+    const user = await userModel
+      .findOne({ email: email })
+      .populate("searchHistory");
     if (user) {
       const isValidUser = await bcrypt.compare(password, user.password);
       if (isValidUser) {
