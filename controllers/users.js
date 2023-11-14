@@ -103,7 +103,7 @@ export const updateUser = async (req, res, next) => {
       ? process.env.ONRENDER_API_URL
       : process.env.API_URL;
   if (imgFile) {
-    imgPath = `${apiUrl}${imgFile.path}`;
+    imgPath = `${apiUrl}/${imgFile.path}`;
   }
   try {
     const currentUser = await userModel

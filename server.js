@@ -20,6 +20,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://instagram-clone-frontend-kx2l.onrender.com",
+      "https://instagram-clone-frontend-562.vercel.app",
     ],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorizations"],
