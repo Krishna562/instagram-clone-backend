@@ -77,6 +77,8 @@ export const loginUser = async (req, res, next) => {
           res.status(200).cookie("jwt", token, {
             maxAge: 10 * 24 * 60 * 60 * 1000,
             httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "none",
           });
           res.status(200).json({ user: user });
         }

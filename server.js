@@ -23,7 +23,7 @@ app.use(
       "https://instagram-clone-frontend-562.vercel.app",
     ],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorizations"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
