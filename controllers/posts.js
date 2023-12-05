@@ -7,28 +7,31 @@ export const createPost = async (req, res, next) => {
   const imgFile = req.file;
   const { caption, tags } = req.body;
   const parsedTags = JSON.parse(tags);
-  const apiUrl =
-    process.env.NODE_ENV === "production"
-      ? process.env.ONRENDER_API_URL
-      : process.env.API_URL;
+  const isProductionMode = process.env.NODE_ENV === "production" ? true : false;
 
-  let uploadResult;
+  const apiUrl = isProductionMode
+    ? process.env.ONRENDER_API_URL
+    : process.env.API_URL;
+
   // UPLOADING TO CLOUDINARY
-  try {
-    const cloudinaryUploadUrl = `${apiUrl}/images/${imgFile.filename}`;
-    console.log(cloudinaryUploadUrl);
-    uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
-    console.log(uploadResult);
-  } catch (err) {
-    console.log(err);
+
+  const cloudinaryUploadUrl = `${apiUrl}/images/${imgFile.filename}`;
+  let uploadResult;
+
+  if (isProductionMode) {
+    try {
+      uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   try {
     const newPost = new postModel({
       creatorId: req.userId,
       caption: caption,
-      postImg: uploadResult.secure_url,
-      postImgId: uploadResult.public_id,
+      postImg: isProductionMode ? uploadResult.secure_url : cloudinaryUploadUrl,
+      postImgId: isProductionMode ? uploadResult.public_id : "0",
       tags: parsedTags,
     });
     await newPost.populate("creatorId");
@@ -149,8 +152,12 @@ export const deletePost = async (req, res, next) => {
       .findById(creator._id)
       .populate("posts");
 
-    // deleteFile(postToDelete.postImg);
-    await cloudinary.v2.api.delete_resources([postToDelete.postImgId]);
+    if (process.env.NODE_ENV === "production") {
+      await cloudinary.v2.api.delete_resources([postToDelete.postImgId]);
+    } else {
+      deleteFile(postToDelete.postImg);
+    }
+
     res.json({ updatedPosts: updatedCreator.posts });
   } catch (err) {
     console.log(err);

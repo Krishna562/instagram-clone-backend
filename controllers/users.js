@@ -1,6 +1,7 @@
 import userModel from "../models/User.js";
 import postModel from "../models/Post.js";
 import { deleteFile } from "../utils/deleteFile.js";
+import cloudinary from "cloudinary";
 
 export const getAllUsers = async (req, res, next) => {
   try {
@@ -97,14 +98,23 @@ export const getTaggedPosts = async (req, res, next) => {
 export const updateUser = async (req, res, next) => {
   const { username } = req.body;
   const imgFile = req.file;
-  let imgPath;
-  const apiUrl =
-    process.env.NODE_ENV === "production"
-      ? process.env.ONRENDER_API_URL
-      : process.env.API_URL;
+  let uploadResult;
+  const isProductionMode = process.env.NODE_ENV === "production" ? true : false;
+
+  const apiUrl = isProductionMode
+    ? process.env.ONRENDER_API_URL
+    : process.env.API_URL;
+
   if (imgFile) {
-    imgPath = `${apiUrl}/${imgFile.path}`;
+    const cloudinaryUploadUrl = `${apiUrl}/images/${imgFile.filename}`;
+    uploadResult = isProductionMode
+      ? await cloudinary.v2.uploader.upload(cloudinaryUploadUrl)
+      : {
+          secure_url: cloudinaryUploadUrl,
+          public_id: "0",
+        };
   }
+
   try {
     const currentUser = await userModel
       .findById(req.userId)
@@ -117,11 +127,16 @@ export const updateUser = async (req, res, next) => {
         throw err;
       }
     }
-    if (imgPath) {
+    if (uploadResult) {
       if (currentUser.profilePic) {
-        deleteFile(currentUser.profilePic);
+        if (isProductionMode) {
+          cloudinary.v2.api.delete_resources([currentUser.profilePicId]);
+        } else {
+          deleteFile(currentUser.profilePic);
+        }
       }
-      currentUser.profilePic = imgPath;
+      currentUser.profilePic = uploadResult.secure_url;
+      currentUser.profilePicId = uploadResult.public_id;
     }
     currentUser.username = username;
     await currentUser.save();
