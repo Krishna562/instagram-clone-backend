@@ -7,6 +7,7 @@ import {
   signupUser,
   logout,
   resetPassword,
+  verifyEmail,
 } from "../controllers/auth.js";
 
 const authRouter = Router();
@@ -33,5 +34,7 @@ authRouter.delete("/logout", logout);
 
 authRouter.put("/reset-password", resetPassword);
 authRouter.put("/resetPass-request", sendResetPasswordEmail);
+
+authRouter.put("/verify-email/:token", verifyEmail);
 
 export default authRouter;

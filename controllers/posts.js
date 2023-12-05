@@ -1,6 +1,7 @@
 import postModel from "../models/Post.js";
 import userModel from "../models/User.js";
 import { deleteFile } from "../utils/deleteFile.js";
+import cloudinary from "cloudinary";
 
 export const createPost = async (req, res, next) => {
   const imgFile = req.file;
@@ -10,12 +11,24 @@ export const createPost = async (req, res, next) => {
     process.env.NODE_ENV === "production"
       ? process.env.ONRENDER_API_URL
       : process.env.API_URL;
-  const imgUrl = `${apiUrl}/${imgFile.path}`;
+
+  let uploadResult;
+  // UPLOADING TO CLOUDINARY
+  try {
+    const cloudinaryUploadUrl = `${apiUrl}/images/${imgFile.filename}`;
+    console.log(cloudinaryUploadUrl);
+    uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
+    console.log(uploadResult);
+  } catch (err) {
+    console.log(err);
+  }
+
   try {
     const newPost = new postModel({
       creatorId: req.userId,
       caption: caption,
-      postImg: imgUrl,
+      postImg: uploadResult.secure_url,
+      postImgId: uploadResult.public_id,
       tags: parsedTags,
     });
     await newPost.populate("creatorId");
@@ -136,7 +149,8 @@ export const deletePost = async (req, res, next) => {
       .findById(creator._id)
       .populate("posts");
 
-    deleteFile(postToDelete.postImg);
+    // deleteFile(postToDelete.postImg);
+    await cloudinary.v2.api.delete_resources([postToDelete.postImgId]);
     res.json({ updatedPosts: updatedCreator.posts });
   } catch (err) {
     console.log(err);

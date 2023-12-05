@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import verificationModel from "../models/Verification.js";
 
 // NODEMAILER TRANSPORTER
 
@@ -16,7 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const signupUser = async (req, res, next) => {
-  const { username, email, password, confirmPassword } = req.body;
+  const { username, email, password } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorsArr = errors.array().map((err) => {
@@ -39,21 +40,85 @@ export const signupUser = async (req, res, next) => {
         });
       } else if (usernameExists) {
         res.status(403).json({
-          errors: { field: "username", message: "This username is taken" },
+          errors: [{ field: "username", message: "This username is taken" }],
         });
       } else {
-        const encryptedPassword = await bcrypt.hash(password, 10);
-        const newUser = new userModel({
-          email,
-          password: encryptedPassword,
-          username,
+        const frontendUrl =
+          process.env.NODE_ENV === "production"
+            ? process.env.ONRENDER_FRONTEND_URL
+            : process.env.FRONTEND_URL;
+
+        crypto.randomBytes(10, async (err, buffer) => {
+          if (err) {
+            console.log(err);
+            throw err;
+          } else {
+            const token = buffer.toString("hex");
+            const mailOptions = {
+              from: "robin2007562@outlook.com",
+              to: email,
+              subject: "Email verification",
+              html: `<h1>Email verification</h1>
+                  <p>Click on this <a href='${frontendUrl}/request-sent/emailVerified?token=${token}'>link</a> to verify your email (${email}) 
+                  </p>`,
+            };
+
+            transporter.sendMail(mailOptions, (err, info) => {
+              if (err) {
+                console.log(err);
+                throw err;
+              }
+            });
+
+            const encryptedPassword = await bcrypt.hash(password, 10);
+            const userToVerify = new verificationModel({
+              username: username,
+              email: email,
+              password: encryptedPassword,
+              token: token,
+            });
+
+            await userToVerify.save();
+          }
         });
-        await newUser.save();
-        res.status(201).json({ user: newUser });
+
+        res.json({ message: "Signup email verification link sent" });
       }
     } catch (err) {
       next(err);
     }
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  const token = req.params.token;
+  try {
+    const verificationUser = await verificationModel.findOne({
+      token: token,
+    });
+
+    if (!verificationUser) {
+      const err = new Error("Invalid token");
+      err.statusCode = 401;
+      throw err;
+    }
+
+    const { password, email, username } = verificationUser;
+
+    const newUser = new userModel({
+      email,
+      password: password,
+      username,
+    });
+    await newUser.save();
+
+    // DELETE THE USER IN VERIFICATION COLLECTION AFTER HE HAS BEEN VERIFIED
+
+    await verificationModel.findOneAndDelete({ token: token });
+
+    res.status(200).json({ message: "user is verified" });
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -98,7 +163,10 @@ export const loginUser = async (req, res, next) => {
 };
 
 export const logout = (req, res, next) => {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", {
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
+  });
   res.json({ message: "cookie removed" });
 };
 

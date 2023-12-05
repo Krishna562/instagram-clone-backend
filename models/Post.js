@@ -9,9 +9,10 @@ const postSchema = new Schema(
     },
     caption: String,
     postImg: {
-      require: true,
       type: String,
+      require: true,
     },
+    postImgId: { require: true, type: String },
     likes: [
       {
         type: Schema.Types.ObjectId,
