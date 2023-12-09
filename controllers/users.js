@@ -214,7 +214,8 @@ export const handleFollowRequest = async (req, res, next) => {
   try {
     const currentUser = await userModel
       .findById(currentUserId)
-      .populate("searchHistory");
+      .populate("searchHistory")
+      .populate("followRequestsRecieved");
     const followRequester = await userModel.findById(followRequesterId);
 
     // UPDATE THE REQUESTER
