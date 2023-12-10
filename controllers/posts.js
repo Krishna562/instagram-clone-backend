@@ -4,6 +4,7 @@ import { deleteFile } from "../utils/deleteFile.js";
 import cloudinary from "cloudinary";
 
 export const createPost = async (req, res, next) => {
+  console.log(imgFile);
   const imgFile = req.file;
   const { caption, tags } = req.body;
   const parsedTags = JSON.parse(tags);

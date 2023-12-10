@@ -135,12 +135,12 @@ export const loginUser = async (req, res, next) => {
           { userId: user._id },
           process.env.JWT_TOKEN_SECRET,
           {
-            expiresIn: "10d",
+            expiresIn: "3",
           }
         );
         if (token) {
           res.status(200).cookie("jwt", token, {
-            maxAge: 10 * 24 * 60 * 60 * 1000,
+            maxAge: 3 * 24 * 60 * 60 * 1000,
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
