@@ -49,6 +49,7 @@ export const createPost = async (req, res, next) => {
 
 export const likePost = async (req, res, next) => {
   const { postId, userId } = req.body;
+  console.log("liked post");
   try {
     const likedPost = await postModel.findById(postId).populate("creatorId");
     const isPostUnliked = likedPost.likes.find((user_Id) =>
