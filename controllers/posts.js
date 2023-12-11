@@ -16,22 +16,22 @@ export const createPost = async (req, res, next) => {
   // UPLOADING TO CLOUDINARY
 
   const cloudinaryUploadUrl = `${apiUrl}/images/${imgFile.filename}`;
-  let uploadResult;
+  // let uploadResult;
 
-  if (isProductionMode) {
-    try {
-      uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
+  // if (isProductionMode) {
+  //   try {
+  //     uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
+  // isProductionMode ? uploadResult.secure_url :
   try {
     const newPost = new postModel({
       creatorId: req.userId,
       caption: caption,
-      postImg: isProductionMode ? uploadResult.secure_url : cloudinaryUploadUrl,
-      postImgId: isProductionMode ? uploadResult.public_id : "0",
+      postImg: cloudinaryUploadUrl,
+      // postImgId: isProductionMode ? uploadResult.public_id : "0",
       tags: parsedTags,
     });
     await newPost.populate("creatorId");
@@ -40,13 +40,7 @@ export const createPost = async (req, res, next) => {
     user.posts.push(newPost);
     user.save();
 
-    // const frontendUrl =
-    //   process.env.NODE_ENV === "production"
-    //     ? process.env.ONRENDER_FRONTEND_URL
-    //     : process.env.FRONTEND_URL;
-    res
-      // .setHeader("Access-Control-Allow-Origin", frontendUrl)
-      .json({ newPost: newPost });
+    res.json({ newPost: newPost });
   } catch (err) {
     console.log(err);
     next(err);
