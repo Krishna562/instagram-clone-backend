@@ -23,6 +23,7 @@ cloudinary.config({
 });
 
 const app = express();
+
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL, process.env.ONRENDER_FRONTEND_URL],
@@ -73,6 +74,7 @@ app.use(usersRouter);
 app.use(postsRouter);
 
 app.use((error, req, res, next) => {
+  console.log(error);
   const status = error.statusCode || 500;
   res.status(status).json({
     error: error.message,
