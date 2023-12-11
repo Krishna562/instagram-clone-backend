@@ -16,22 +16,22 @@ export const createPost = async (req, res, next) => {
   // UPLOADING TO CLOUDINARY
 
   const cloudinaryUploadUrl = `${apiUrl}/images/${imgFile.filename}`;
-  // let uploadResult;
+  let uploadResult;
 
-  // if (isProductionMode) {
-  //   try {
-  //     uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // }
-  // isProductionMode ? uploadResult.secure_url :
+  if (isProductionMode) {
+    try {
+      uploadResult = await cloudinary.v2.uploader.upload(cloudinaryUploadUrl);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   try {
     const newPost = new postModel({
       creatorId: req.userId,
       caption: caption,
-      postImg: cloudinaryUploadUrl,
-      // postImgId: isProductionMode ? uploadResult.public_id : "0",
+      postImg: isProductionMode ? uploadResult.secure_url : cloudinaryUploadUrl,
+      postImgId: isProductionMode ? uploadResult.public_id : "0",
       tags: parsedTags,
     });
     await newPost.populate("creatorId");
