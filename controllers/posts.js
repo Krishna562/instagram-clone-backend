@@ -4,7 +4,6 @@ import { deleteFile } from "../utils/deleteFile.js";
 import cloudinary from "cloudinary";
 
 export const createPost = async (req, res, next) => {
-  console.log(imgFile);
   const imgFile = req.file;
   const { caption, tags } = req.body;
   const parsedTags = JSON.parse(tags);
@@ -40,7 +39,14 @@ export const createPost = async (req, res, next) => {
     const user = await userModel.findById(req.userId);
     user.posts.push(newPost);
     user.save();
-    res.json({ newPost: newPost });
+
+    const frontendUrl =
+      process.env.NODE_ENV === "production"
+        ? process.env.ONRENDER_FRONTEND_URL
+        : process.env.FRONTEND_URL;
+    res
+      .setHeader("Access-Control-Allow-Origin", frontendUrl)
+      .json({ newPost: newPost });
   } catch (err) {
     console.log(err);
     next(err);
