@@ -40,12 +40,12 @@ export const createPost = async (req, res, next) => {
     user.posts.push(newPost);
     user.save();
 
-    const frontendUrl =
-      process.env.NODE_ENV === "production"
-        ? process.env.ONRENDER_FRONTEND_URL
-        : process.env.FRONTEND_URL;
+    // const frontendUrl =
+    //   process.env.NODE_ENV === "production"
+    //     ? process.env.ONRENDER_FRONTEND_URL
+    //     : process.env.FRONTEND_URL;
     res
-      .setHeader("Access-Control-Allow-Origin", frontendUrl)
+      // .setHeader("Access-Control-Allow-Origin", frontendUrl)
       .json({ newPost: newPost });
   } catch (err) {
     console.log(err);
@@ -55,7 +55,6 @@ export const createPost = async (req, res, next) => {
 
 export const likePost = async (req, res, next) => {
   const { postId, userId } = req.body;
-  console.log("liked post");
   try {
     const likedPost = await postModel.findById(postId).populate("creatorId");
     const isPostUnliked = likedPost.likes.find((user_Id) =>
