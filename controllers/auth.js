@@ -135,7 +135,7 @@ export const loginUser = async (req, res, next) => {
           { userId: user._id },
           process.env.JWT_TOKEN_SECRET,
           {
-            expiresIn: "3",
+            expiresIn: "3d",
           }
         );
         if (token) {
