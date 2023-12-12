@@ -146,6 +146,10 @@ export const loginUser = async (req, res, next) => {
             sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
           });
           res.status(200).json({ user: user });
+        } else {
+          const err = new Error("invalid jwt token");
+          err.statusCode = 401;
+          throw err;
         }
       } else {
         res.status(401).json({
